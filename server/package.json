@@ -1,0 +1,26 @@
+{
+  "name": "@bibliotekarz/server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "node --experimental-sqlite --disable-warning=ExperimentalWarning --import tsx --watch src/index.ts serve",
+    "start": "node --experimental-sqlite --disable-warning=ExperimentalWarning dist/index.js serve",
+    "scan": "node --experimental-sqlite --disable-warning=ExperimentalWarning --import tsx src/index.ts scan",
+    "test": "node --experimental-sqlite --disable-warning=ExperimentalWarning --import tsx --test \"src/**/*.test.ts\""
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "fast-xml-parser": "^4.5.1",
+    "fflate": "^0.8.2",
+    "music-metadata": "^11.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

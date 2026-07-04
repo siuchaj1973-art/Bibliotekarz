@@ -1,0 +1,17 @@
+services:
+  bibliotekarz:
+    build: .
+    container_name: bibliotekarz
+    ports:
+      - "4321:4321"
+    environment:
+      PORT: 4321
+      LIBRARY_DIR: /library
+      DATA_DIR: /data
+      # Uncomment and set a secret when exposing to the internet:
+      # AUTH_TOKEN: "zmien-mnie-na-dlugi-losowy-ciag"
+      LOG_LEVEL: info
+    volumes:
+      - ./library:/library:ro   # Your ebook/audiobook files (read-only)
+      - ./data:/data            # Database + extracted covers (persisted)
+    restart: unless-stopped
