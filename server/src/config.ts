@@ -21,6 +21,7 @@ export interface Config {
   authToken: string;
   logLevel: 'debug' | 'info' | 'warn' | 'error';
   webDist: string;
+  scanOnStart: boolean;
 }
 
 function loadDotEnv(): void {
@@ -64,5 +65,6 @@ export function loadConfig(): Config {
     authToken: (process.env.AUTH_TOKEN ?? '').trim(),
     logLevel,
     webDist: path.resolve(repoRoot, 'web', 'dist'),
+    scanOnStart: (process.env.SCAN_ON_START ?? 'true').toLowerCase() !== 'false',
   };
 }

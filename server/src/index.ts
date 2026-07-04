@@ -32,6 +32,12 @@ async function main(): Promise<void> {
       log.info(`Biblioteka: ${config.libraryDir}`);
       log.info(`Dane:       ${config.dataDir}`);
       if (!config.authToken) log.warn('AUTH_TOKEN nie ustawiony — API jest otwarte (OK dla localhost / zaufanej sieci).');
+      if (config.scanOnStart) {
+        log.info('Skanowanie startowe (przyrostowe) w tle…');
+        scanLibrary(db, config)
+          .then((r) => log.info(`Skan startowy: +${r.addedItems} ~${r.updatedItems} -${r.removedItems} (${r.durationMs}ms)`))
+          .catch((err) => log.warn('Skan startowy nie powiódł się:', (err as Error).message));
+      }
     });
     const shutdown = () => {
       log.info('Zamykanie...');

@@ -1,17 +1,35 @@
 services:
   bibliotekarz:
-    build: .
+    build:
+      context: .
+      # Override for restricted networks: NODE_IMAGE=my-mirror/node:22-alpine
+      args:
+        NODE_IMAGE: ${NODE_IMAGE:-node:22-alpine}
+    image: bibliotekarz:latest
     container_name: bibliotekarz
     ports:
-      - "4321:4321"
+      - "${PORT:-4321}:4321"
     environment:
       PORT: 4321
       LIBRARY_DIR: /library
       DATA_DIR: /data
-      # Uncomment and set a secret when exposing to the internet:
-      # AUTH_TOKEN: "zmien-mnie-na-dlugi-losowy-ciag"
-      LOG_LEVEL: info
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      # Set a long random secret when exposing Bibliotekarz to the internet.
+      AUTH_TOKEN: ${AUTH_TOKEN:-}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
     volumes:
-      - ./library:/library:ro   # Your ebook/audiobook files (read-only)
-      - ./data:/data            # Database + extracted covers (persisted)
+      # Your ebook/audiobook files — read-only, never modified.
+      - ${LIBRARY_DIR:-./library}:/library:ro
+      # Database + extracted covers — persisted in a managed volume
+      # (avoids host-uid permission issues with the non-root container user).
+      - bibliotekarz-data:/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4321/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+volumes:
+  bibliotekarz-data:

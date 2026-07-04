@@ -25,6 +25,9 @@ export function createApp(db: Database, config: Config): express.Express {
 
   const scanState: ScanState = { running: false, startedAt: null, lastResult: null, lastError: null };
 
+  // Unauthenticated liveness probe (used by Docker HEALTHCHECK / load balancers).
+  app.get('/healthz', (_req, res) => res.json({ ok: true, name: 'Bibliotekarz', version: '1.0.0' }));
+
   // --- auth ---
   const auth = (req: Request, res: Response, next: NextFunction) => {
     if (!config.authToken) return next();

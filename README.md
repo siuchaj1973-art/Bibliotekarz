@@ -83,13 +83,41 @@ npm run dev     # serwer (tsx --watch) + Vite z hot-reload na :5173
 ## 🐳 Uruchomienie w chmurze / Docker
 
 ```bash
-docker compose up -d
+# 1. (opcjonalnie) skonfiguruj przez zmienne środowiskowe lub .env
+export LIBRARY_DIR=/sciezka/do/twoich/plikow
+export AUTH_TOKEN=dlugi-losowy-sekret        # wymagane przy wystawieniu do internetu
+
+# 2. Zbuduj i uruchom
+docker compose up -d --build
+#    → http://localhost:4321
 ```
 
-`docker-compose.yml` montuje `./library` (Twoje pliki, tylko do odczytu) oraz
-`./data` (baza + okładki). Ustaw `AUTH_TOKEN` w `.env`, jeśli wystawiasz usługę
-do internetu — wtedy każde żądanie musi zawierać `Authorization: Bearer <token>`
-lub `?token=<token>` (interfejs webowy pyta o token w Ustawieniach).
+Obraz jest **wieloetapowy** (build → runtime), działa jako **użytkownik nie-root**,
+ma wbudowany **HEALTHCHECK** (`/healthz`) i przy starcie wykonuje przyrostowy skan
+biblioteki (`SCAN_ON_START=true`), więc katalog jest gotowy zaraz po `up`.
+
+- `LIBRARY_DIR` montowany jest **tylko do odczytu** — pliki nie są modyfikowane.
+- Baza i okładki trzymane są w **nazwanym wolumenie** `bibliotekarz-data` (bez
+  problemów z uprawnieniami hosta dla użytkownika nie-root).
+- `AUTH_TOKEN` — gdy ustawiony, każde żądanie `/api` i `/opds` musi zawierać
+  `Authorization: Bearer <token>` lub `?token=<token>` (UI pyta o token w Ustawieniach).
+  Endpoint `/healthz` pozostaje publiczny.
+
+**Sieci z ograniczeniami** (bez dostępu do Docker Hub): wskaż lustro obrazu bazowego —
+```bash
+docker compose build --build-arg NODE_IMAGE=moje-lustro/node:22-alpine
+# lub:  NODE_IMAGE=moje-lustro/node:22-alpine docker compose up -d --build
+```
+
+Uruchomienie bez Compose:
+```bash
+docker build -t bibliotekarz .
+docker run -d -p 4321:4321 \
+  -v /sciezka/do/plikow:/library:ro \
+  -v bibliotekarz-data:/data \
+  -e AUTH_TOKEN=sekret \
+  --name bibliotekarz bibliotekarz
+```
 
 ---
 
@@ -128,7 +156,9 @@ library/
 | `DATA_DIR`        | `./data`       | Baza danych i okładki |
 | `PUBLIC_BASE_URL` | *(auto)*       | Bazowy URL dla linków OPDS |
 | `AUTH_TOKEN`      | *(brak)*       | Token dostępu; puste = otwarte (OK dla localhost) |
+| `SCAN_ON_START`   | `true`         | Przyrostowy skan przy starcie serwera |
 | `LOG_LEVEL`       | `info`         | `debug` \| `info` \| `warn` \| `error` |
+| `NODE_IMAGE`      | `node:22-alpine` | (tylko Docker) obraz bazowy — do podmiany na lustro |
 
 ---
 
