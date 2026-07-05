@@ -9,6 +9,7 @@
     "dev": "node --experimental-sqlite --disable-warning=ExperimentalWarning --import tsx --watch src/index.ts serve",
     "start": "node --experimental-sqlite --disable-warning=ExperimentalWarning dist/index.js serve",
     "scan": "node --experimental-sqlite --disable-warning=ExperimentalWarning --import tsx src/index.ts scan",
+    "import-calibre": "node --experimental-sqlite --disable-warning=ExperimentalWarning --import tsx src/index.ts import-calibre",
     "test": "node --experimental-sqlite --disable-warning=ExperimentalWarning --import tsx --test \"src/**/*.test.ts\""
   },
   "dependencies": {

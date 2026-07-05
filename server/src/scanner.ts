@@ -107,8 +107,13 @@ export async function scanLibrary(db: Database, config: Config): Promise<ScanRes
     });
   }
 
-  // Remove files that vanished from disk.
-  const removedPaths = [...dbFiles.keys()].filter((p) => !seenPaths.has(p));
+  // Remove files that vanished from disk. Only reconcile paths *inside* the
+  // scanned library root, so files imported from elsewhere (e.g. a Calibre
+  // library) are never deleted by a routine scan.
+  const rootPrefix = path.resolve(config.libraryDir) + path.sep;
+  const removedPaths = [...dbFiles.keys()].filter(
+    (p) => !seenPaths.has(p) && (p + path.sep).startsWith(rootPrefix),
+  );
   if (removedPaths.length) {
     const orphaned = repo.deleteFilesUnder(db, removedPaths);
     result.removedItems += orphaned.length;

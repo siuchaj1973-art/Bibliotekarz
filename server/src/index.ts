@@ -2,6 +2,7 @@ import { loadConfig } from './config.js';
 import { openDatabase } from './db.js';
 import { createApp } from './http.js';
 import { scanLibrary } from './scanner.js';
+import { importCalibreLibrary } from './import/calibre.js';
 import { log, setLogLevel } from './logger.js';
 
 async function main(): Promise<void> {
@@ -21,6 +22,23 @@ async function main(): Promise<void> {
       log.warn(`${result.errors.length} błędów:`);
       for (const e of result.errors.slice(0, 20)) log.warn(`  ${e.path}: ${e.message}`);
     }
+    db.close();
+    return;
+  }
+
+  if (command === 'import-calibre') {
+    const calibreDir = process.argv[3];
+    if (!calibreDir) {
+      log.error('Użycie: import-calibre <ścieżka-do-biblioteki-Calibre>');
+      process.exit(1);
+    }
+    log.info(`Import z Calibre: ${calibreDir}`);
+    const r = await importCalibreLibrary(db, config, calibreDir);
+    log.info(
+      `Gotowe w ${r.durationMs}ms — książek w Calibre: ${r.booksInLibrary}, ` +
+        `zaimportowano ${r.imported}, zaktualizowano ${r.updated}, pominięto (brak plików) ${r.skippedNoFiles}.`,
+    );
+    if (r.errors.length) for (const e of r.errors.slice(0, 20)) log.warn(`  „${e.title}": ${e.message}`);
     db.close();
     return;
   }

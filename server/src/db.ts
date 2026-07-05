@@ -142,6 +142,11 @@ export function openDatabase(dbPath: string): Database {
   return db;
 }
 
+/** Open an existing SQLite database read-only (e.g. a Calibre metadata.db). */
+export function openReadonly(dbPath: string): Database {
+  return new DatabaseSync(dbPath, { readOnly: true });
+}
+
 /** Run a function inside a transaction, rolling back on error. */
 export function transaction<T>(db: Database, fn: () => T): T {
   db.exec('BEGIN');

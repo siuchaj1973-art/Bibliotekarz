@@ -9,6 +9,27 @@ export function SettingsPage() {
   const [scan, setScan] = useState<ScanState | null>(null);
   const [token, setTokenInput] = useState(getToken());
   const [polling, setPolling] = useState(false);
+  const [calibrePath, setCalibrePath] = useState('');
+  const [importing, setImporting] = useState(false);
+  const [importMsg, setImportMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+
+  const runImport = async () => {
+    if (!calibrePath.trim()) return;
+    setImporting(true);
+    setImportMsg(null);
+    try {
+      const r = await api.importCalibre(calibrePath.trim());
+      setImportMsg({
+        kind: 'ok',
+        text: `Zaimportowano ${r.imported}, zaktualizowano ${r.updated} z ${r.booksInLibrary} książek (pominięto bez plików: ${r.skippedNoFiles}${r.errors.length ? `, błędów: ${r.errors.length}` : ''}).`,
+      });
+      reloadStats();
+    } catch (e) {
+      setImportMsg({ kind: 'err', text: (e as Error).message });
+    } finally {
+      setImporting(false);
+    }
+  };
 
   const refreshScan = () => api.scanStatus().then(setScan).catch(() => {});
   useEffect(() => { refreshScan(); }, []);
@@ -72,6 +93,17 @@ export function SettingsPage() {
           {scan.lastResult.errors.length} plików z błędami. Pierwszy: {scan.lastResult.errors[0].path}
         </div>
       )}
+
+      <div className="section-title">Import z Calibre</div>
+      <p style={{ color: 'var(--text-dim)' }}>
+        Podaj ścieżkę do katalogu biblioteki Calibre (zawierającego <code>metadata.db</code>).
+        Metadane i okładki Calibre zostaną zaimportowane, a pliki pozostaną w miejscu (nic nie jest kopiowane).
+      </p>
+      <div style={{ display: 'flex', gap: 10, maxWidth: 560 }}>
+        <input className="control" placeholder="/ścieżka/do/Calibre Library" value={calibrePath} onChange={(e) => setCalibrePath(e.target.value)} />
+        <button className="btn primary" onClick={runImport} disabled={importing}>{importing ? 'Importowanie…' : 'Importuj'}</button>
+      </div>
+      {importMsg && <div className={`banner ${importMsg.kind === 'ok' ? 'ok' : ''}`} style={{ marginTop: 12 }}>{importMsg.text}</div>}
 
       <div className="section-title">Katalog OPDS</div>
       <p style={{ color: 'var(--text-dim)' }}>

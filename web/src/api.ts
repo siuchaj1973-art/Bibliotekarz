@@ -92,6 +92,10 @@ export const api = {
 
   scan: () => req<{ started: boolean }>('/api/scan', { method: 'POST' }),
   scanStatus: () => req<ScanState>('/api/scan/status'),
+  importCalibre: (path: string) =>
+    req<{ booksInLibrary: number; imported: number; updated: number; skippedNoFiles: number; errors: { title: string; message: string }[] }>(
+      '/api/import/calibre', { method: 'POST', body: JSON.stringify({ path }) },
+    ),
 
   manifest: (id: number) => req<EpubManifest>(`/api/items/${id}/manifest`),
 

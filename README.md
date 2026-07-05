@@ -1,5 +1,8 @@
 # 📚 Bibliotekarz
 
+![CI](https://github.com/siuchaj1973-art/Bibliotekarz/actions/workflows/ci.yml/badge.svg)
+![Docker](https://github.com/siuchaj1973-art/Bibliotekarz/actions/workflows/docker.yml/badge.svg)
+
 **Profesjonalny, samodzielny menedżer e-booków i audiobooków.** Działa lokalnie
 lub w chmurze. Powstał jako odpowiedź na ograniczenia Calibre, które nie zarządza
 poprawnie audiobookami — Bibliotekarz traktuje audiobooki jak pełnoprawnych
@@ -27,6 +30,8 @@ katalogiem OPDS dla zewnętrznych czytników.
 - **Edytor metadanych** w interfejsie webowym.
 - **Katalog OPDS 1.2** — podłącz KOReader, Moon+ Reader, Librera, Thorium itp.
 - **Śledzenie postępu** — status (nieprzeczytane / w trakcie / ukończone) i procent.
+- **Import z Calibre** — migracja metadanych i okładek z istniejącej biblioteki
+  Calibre (`metadata.db`) bez kopiowania plików.
 
 ### E-booki
 - **Wbudowany czytnik EPUB** — renderowanie spine, spis treści, nawigacja
@@ -147,6 +152,25 @@ library/
 
 ---
 
+## 🔄 Migracja z Calibre
+
+Masz już bibliotekę w Calibre? Zaimportuj jej metadane i okładki (pliki zostają
+w miejscu — nic nie jest kopiowane ani przenoszone):
+
+```bash
+# CLI:
+npm run import-calibre -- "/ścieżka/do/Calibre Library"
+```
+
+lub w interfejsie: **Ustawienia → Import z Calibre** → wklej ścieżkę do katalogu
+z `metadata.db` → **Importuj**.
+
+Przenoszone są: tytuł, autorzy, seria + numer, wydawca, rok, język, ISBN/ASIN,
+opis, tagi, ocena (skala Calibre 0–10 → 0–5) oraz okładki. Import jest
+**idempotentny** — ponowne uruchomienie aktualizuje istniejące pozycje zamiast
+tworzyć duplikaty. Rutynowy skan biblioteki **nie usuwa** pozycji zaimportowanych
+z Calibre (plików spoza `LIBRARY_DIR`).
+
 ## ⚙️ Konfiguracja (`.env`)
 
 | Zmienna           | Domyślnie      | Opis |
@@ -208,6 +232,8 @@ Vite.
 | `GET`  | `/api/authors` \| `/api/series` \| `/api/tags` | Fasety |
 | `GET`/`POST`/`DELETE` | `/api/collections` … | Kolekcje |
 | `POST` | `/api/scan` + `GET /api/scan/status` | Skan (asynchroniczny) |
+| `POST` | `/api/import/calibre` | Import biblioteki Calibre (`{ path }`) |
+| `GET`  | `/healthz` | Sonda żywotności (bez autoryzacji) |
 | `GET`  | `/opds`, `/opds/ebooks`, `/opds/audiobooks`, `/opds/recent` | Katalog OPDS |
 
 ---

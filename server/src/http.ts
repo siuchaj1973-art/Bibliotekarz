@@ -5,6 +5,7 @@ import type { Database } from './db.js';
 import type { Config } from './config.js';
 import * as repo from './repo.js';
 import { scanLibrary } from './scanner.js';
+import { importCalibreLibrary } from './import/calibre.js';
 import { epubManifest } from './formats/epub.js';
 import { readZip } from './formats/zip.js';
 import { buildOpds } from './opds.js';
@@ -186,6 +187,18 @@ export function createApp(db: Database, config: Config): express.Express {
         scanState.running = false;
       });
     res.status(202).json({ started: true });
+  });
+
+  // --- Calibre import ---
+  api.post('/import/calibre', async (req, res) => {
+    const dir = str(req.body?.path);
+    if (!dir) return res.status(400).json({ error: 'Podaj ścieżkę do biblioteki Calibre (pole path).' });
+    try {
+      const result = await importCalibreLibrary(db, config, dir);
+      res.json(result);
+    } catch (err) {
+      res.status(400).json({ error: (err as Error).message });
+    }
   });
 
   app.use('/api', api);
